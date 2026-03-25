@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CyberForge Academy — Interactive Cybersecurity Learning Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0e17;--bg2:#0f1520;--bg3:#131a2a;--bg4:#18223a;--bg5:#1a2340;
+  --cyan:#00e5ff;--green:#39ff14;--red:#ff3e3e;--amber:#ffb300;--purple:#b24dff;--pink:#ff4da6;
+  --t1:#e8ecf4;--t2:#8892a8;--t3:#556080;
+  --bdr:#1e2a45;--bdr2:#2a3a60;
+  --r:12px;--r2:8px;--r3:20px;
+  --ff:'Outfit',sans-serif;--mono:'JetBrains Mono',monospace;
+  --ease:all .3s cubic-bezier(.4,0,.2,1);
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--ff);background:var(--bg);color:var(--t1);line-height:1.6;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:3px}
+::selection{background:rgba(0,229,255,.25);color:#fff}
+
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,229,255,.012) 2px,rgba(0,229,255,.012) 4px);pointer-events:none;z-index:9999}
+
+.bg-orbs{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.bg-orbs .orb{position:absolute;border-radius:50%;filter:blur(120px);opacity:.07}
+.bg-orbs .o1{width:600px;height:600px;background:var(--cyan);top:-200px;right:-100px;animation:of 20s ease-in-out infinite}
+.bg-orbs .o2{width:500px;height:500px;background:var(--purple);bottom:-150px;left:-100px;animation:of 25s ease-in-out infinite reverse}
+@keyframes of{0%,100%{transform:translate(0,0)}33%{transform:translate(30px,-40px)}66%{transform:translate(-20px,30px)}}
+#matrix-canvas{position:fixed;inset:0;z-index:0;opacity:.035;pointer-events:none}
+
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(10,14,23,.88);backdrop-filter:blur(20px);border-bottom:1px solid var(--bdr)}
+.nav-inner{max-width:1400px;margin:0 auto;padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:68px}
+.nav-logo{display:flex;align-items:center;gap:.6rem;font-weight:800;font-size:1.2rem}
+.nav-logo svg{width:32px;height:32px}
+.nav-logo span{color:var(--cyan)}
+.nav-tabs{display:flex;gap:0}
+.nav-tab{padding:.5rem 1.2rem;font-size:.82rem;font-weight:500;color:var(--t2);transition:var(--ease);position:relative;border-bottom:2px solid transparent}
+.nav-tab:hover{color:var(--t1)}
+.nav-tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+.nav-right{display:flex;align-items:center;gap:1rem}
+.xp-bar{display:flex;align-items:center;gap:.5rem;font-family:var(--mono);font-size:.75rem}
+.xp-bar .bar{width:100px;height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.xp-bar .bar .fill{height:100%;background:var(--cyan);border-radius:3px;transition:width .5s ease;width:35%}
+.xp-bar .lvl{color:var(--cyan);font-weight:700}
+.streak-badge{display:flex;align-items:center;gap:.3rem;padding:.3rem .7rem;background:rgba(255,179,0,.1);border:1px solid rgba(255,179,0,.2);border-radius:2rem;font-family:var(--mono);font-size:.7rem;color:var(--amber)}
+.user-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--purple));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;border:2px solid var(--bdr2);cursor:pointer;transition:var(--ease)}
+.user-avatar:hover{border-color:var(--cyan);box-shadow:0 0 20px rgba(0,229,255,.3)}
+
+.page{display:none;position:relative;z-index:1;padding:5.5rem 2rem 3rem;max-width:1400px;margin:0 auto;min-height:100vh}
+.page.active{display:block;animation:pageIn .4s ease}
+@keyframes pageIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+.section-hdr{margin-bottom:2.5rem}
+.section-hdr .tag{font-family:var(--mono);font-size:.72rem;color:var(--cyan);text-transform:uppercase;letter-spacing:.12em;margin-bottom:.5rem}
+.section-hdr h2{font-size:clamp(1.6rem,3.5vw,2.5rem);font-weight:800;letter-spacing:-.03em}
+.section-hdr p{color:var(--t2);margin-top:.5rem;max-width:560px}
+.card{background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r3);padding:1.75rem;transition:var(--ease)}
+.card:hover{border-color:var(--bdr2);transform:translateY(-2px)}
+.btn{display:inline-flex;align-items:center;gap:.5rem;padding:.65rem 1.5rem;border-radius:var(--r2);font-weight:600;font-size:.85rem;transition:var(--ease)}
+.btn-cy{background:var(--cyan);color:var(--bg)}
+.btn-cy:hover{box-shadow:0 0 30px rgba(0,229,255,.35);transform:translateY(-1px)}
+.btn-out{border:1px solid var(--bdr2);color:var(--t1)}
+.btn-out:hover{border-color:var(--cyan);color:var(--cyan)}
+.btn-sm{padding:.45rem 1rem;font-size:.78rem}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+.grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.25rem}
+.badge{padding:.2rem .6rem;border-radius:2rem;font-family:var(--mono);font-size:.68rem;font-weight:600}
+.mono{font-family:var(--mono)}
+
+.toast-container{position:fixed;top:80px;right:20px;z-index:9000;display:flex;flex-direction:column;gap:.5rem}
+.toast{padding:.8rem 1.2rem;border-radius:var(--r2);font-size:.85rem;font-weight:500;animation:toastIn .4s ease,toastOut .4s ease 2.6s forwards;display:flex;align-items:center;gap:.5rem;min-width:280px;border:1px solid;backdrop-filter:blur(12px)}
+.toast-success{background:rgba(57,255,20,.1);border-color:rgba(57,255,20,.2);color:var(--green)}
+.toast-error{background:rgba(255,62,62,.1);border-color:rgba(255,62,62,.2);color:var(--red)}
+.toast-info{background:rgba(0,229,255,.1);border-color:rgba(0,229,255,.2);color:var(--cyan)}
+.toast-xp{background:rgba(178,77,255,.1);border-color:rgba(178,77,255,.2);color:var(--purple)}
+@keyframes toastIn{from{opacity:0;transform:translateX(100px)}to{opacity:1;transform:translateX(0)}}
+@keyframes toastOut{to{opacity:0;transform:translateX(100px)}}
+
+.dash-hero{background:linear-gradient(135deg,rgba(0,229,255,.06),rgba(178,77,255,.04));border:1px solid var(--bdr);border-radius:var(--r3);padding:2.5rem;margin-bottom:2rem;position:relative;overflow:hidden}
+.dash-hero::after{content:'';position:absolute;top:-50%;right:-20%;width:400px;height:400px;background:radial-gradient(circle,rgba(0,229,255,.08),transparent 70%)}
+.dash-hero h1{font-size:1.8rem;font-weight:800;margin-bottom:.5rem;position:relative;z-index:1}
+.dash-hero h1 span{color:var(--cyan)}
+.dash-hero p{color:var(--t2);position:relative;z-index:1}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin:2rem 0}
+.stat-card{background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);padding:1.25rem;text-align:center;transition:var(--ease)}
+.stat-card:hover{border-color:var(--bdr2)}
+.stat-card .val{font-size:1.8rem;font-weight:800;font-family:var(--mono)}
+.stat-card .lbl{font-size:.75rem;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-top:.25rem}
+.activity-item{display:flex;align-items:center;gap:1rem;padding:.8rem 0;border-bottom:1px solid rgba(255,255,255,.03);font-size:.875rem}
+.activity-item .icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+.activity-item .time{margin-left:auto;font-size:.75rem;color:var(--t3);font-family:var(--mono)}
+
+.terminal{background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r3);overflow:hidden;margin-bottom:2rem}
+.term-bar{display:flex;align-items:center;gap:8px;padding:.8rem 1.2rem;background:var(--bg2);border-bottom:1px solid var(--bdr)}
+.term-bar .dot{width:11px;height:11px;border-radius:50%}
+.dot-r{background:#ff5f56}.dot-y{background:#ffbd2e}.dot-g{background:#27c93f}
+.term-bar .title{flex:1;text-align:center;font-family:var(--mono);font-size:.72rem;color:var(--t3)}
+.term-body{padding:1rem 1.25rem;font-family:var(--mono);font-size:.82rem;min-height:300px;max-height:400px;overflow-y:auto;line-height:1.8}
+.term-body .line{margin-bottom:2px}
+.term-body .prompt{color:var(--green)}
+.term-body .cmd{color:var(--cyan)}
+.term-body .out{color:var(--t2)}
+.term-body .ok{color:var(--green)}
+.term-body .err{color:var(--red)}
+.term-body .warn{color:var(--amber)}
+.term-body .info{color:var(--purple)}
+.term-input{flex:1;background:none;border:none;outline:none;color:var(--cyan);font-family:var(--mono);font-size:.82rem;caret-color:var(--cyan)}
+
+.quiz-card{background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r3);padding:2rem;max-width:700px}
+.quiz-progress{display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem}
+.quiz-progress .bar{flex:1;height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.quiz-progress .bar .fill{height:100%;background:var(--cyan);border-radius:3px;transition:width .4s ease}
+.quiz-progress .count{font-family:var(--mono);font-size:.75rem;color:var(--t3)}
+.quiz-q{font-size:1.1rem;font-weight:600;margin-bottom:1.5rem;line-height:1.5}
+.quiz-opt{display:flex;align-items:center;gap:.75rem;padding:1rem 1.25rem;background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);cursor:pointer;transition:var(--ease);font-size:.9rem;margin-bottom:.6rem}
+.quiz-opt:hover{border-color:var(--bdr2);background:var(--bg4)}
+.quiz-opt.selected{border-color:var(--cyan);background:rgba(0,229,255,.06)}
+.quiz-opt.correct{border-color:var(--green);background:rgba(57,255,20,.08)}
+.quiz-opt.wrong{border-color:var(--red);background:rgba(255,62,62,.08)}
+.quiz-opt .marker{width:24px;height:24px;border-radius:50%;border:2px solid var(--bdr2);display:flex;align-items:center;justify-content:center;font-size:.7rem;transition:var(--ease);flex-shrink:0}
+.quiz-opt.selected .marker{border-color:var(--cyan);background:var(--cyan);color:var(--bg)}
+.quiz-opt.correct .marker{border-color:var(--green);background:var(--green);color:var(--bg)}
+.quiz-opt.wrong .marker{border-color:var(--red);background:var(--red);color:var(--bg)}
+.quiz-explain{margin-top:1rem;padding:1rem;background:rgba(0,229,255,.04);border:1px solid rgba(0,229,255,.15);border-radius:var(--r2);font-size:.85rem;color:var(--t2);line-height:1.6;display:none}
+.quiz-explain.show{display:block;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+.tool-panel{background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r3);padding:2rem;margin-bottom:1.5rem}
+.tool-panel h3{font-size:1.1rem;font-weight:700;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+.input-group{margin-bottom:1rem}
+.input-group label{display:block;font-size:.78rem;color:var(--t3);margin-bottom:.4rem;font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em}
+.text-input{width:100%;padding:.7rem 1rem;background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r2);color:var(--t1);font-family:var(--mono);font-size:.85rem;outline:none;transition:var(--ease)}
+.text-input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,229,255,.1)}
+textarea.text-input{resize:vertical;min-height:80px}
+.output-box{background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r2);padding:1rem;font-family:var(--mono);font-size:.82rem;color:var(--green);word-break:break-all;min-height:44px;margin-top:.5rem;position:relative}
+.copy-btn{position:absolute;top:.5rem;right:.5rem;padding:.3rem .6rem;background:var(--bg3);border:1px solid var(--bdr);border-radius:4px;font-size:.7rem;color:var(--t2);transition:var(--ease);font-family:var(--mono)}
+.copy-btn:hover{border-color:var(--cyan);color:var(--cyan)}
+
+.pw-meter{display:flex;gap:4px;margin:1rem 0 .5rem}
+.pw-meter .seg{flex:1;height:6px;border-radius:3px;background:rgba(255,255,255,.06);transition:var(--ease)}
+.pw-criteria{display:grid;grid-template-columns:1fr 1fr;gap:.3rem;margin-top:.75rem}
+.pw-criteria .cr{display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:var(--t3);transition:var(--ease)}
+.pw-criteria .cr.pass{color:var(--green)}
+
+.sandbox-split{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+.sandbox-preview{background:#fff;border-radius:var(--r2);min-height:200px;padding:1rem;border:1px solid var(--bdr);color:#333;font-family:sans-serif}
+.sandbox-preview .url-bar{background:#f0f0f0;border-radius:4px;padding:.4rem .7rem;margin-bottom:.75rem;font-size:.75rem;color:#666;font-family:var(--mono)}
+
+.network-canvas{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r2);min-height:350px;position:relative;overflow:hidden}
+.net-node{position:absolute;width:70px;text-align:center;cursor:pointer;transition:var(--ease)}
+.net-node:hover{transform:scale(1.1)}
+.net-node .nicon{width:50px;height:50px;border-radius:12px;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;border:2px solid var(--bdr);transition:var(--ease)}
+.net-node:hover .nicon{border-color:var(--cyan);box-shadow:0 0 20px rgba(0,229,255,.2)}
+.net-node .nlabel{font-size:.65rem;font-family:var(--mono);color:var(--t2)}
+.net-node.compromised .nicon{border-color:var(--red)!important;box-shadow:0 0 20px rgba(255,62,62,.3)!important}
+.net-node.secured .nicon{border-color:var(--green)!important;box-shadow:0 0 20px rgba(57,255,20,.3)!important}
+.net-log{max-height:150px;overflow-y:auto;background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r2);padding:.75rem;font-family:var(--mono);font-size:.72rem;margin-top:1rem;line-height:1.8}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);z-index:5000;display:none;align-items:center;justify-content:center;padding:2rem}
+.modal-overlay.open{display:flex;animation:fadeIn .3s ease}
+.modal{background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r3);padding:2.5rem;max-width:600px;width:100%;max-height:80vh;overflow-y:auto}
+.modal h3{font-size:1.3rem;font-weight:700;margin-bottom:.5rem}
+.modal .desc{color:var(--t2);font-size:.9rem;margin-bottom:1.5rem;line-height:1.6}
+.flag-input{display:flex;gap:.5rem;margin-top:1rem}
+.flag-input input{flex:1}
+
+.lb-table{width:100%;border-collapse:collapse}
+.lb-table th{padding:.8rem 1.2rem;text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);font-family:var(--mono);border-bottom:1px solid var(--bdr)}
+.lb-table td{padding:.8rem 1.2rem;border-bottom:1px solid rgba(255,255,255,.03);font-size:.88rem}
+.lb-table tr:hover td{background:rgba(0,229,255,.02)}
+.lb-user{display:flex;align-items:center;gap:.6rem}
+.lb-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.75rem}
+
+@media(max-width:768px){
+  .nav-tabs{display:none}
+  .grid-2,.sandbox-split{grid-template-columns:1fr}
+  .stats-row{grid-template-columns:1fr 1fr}
+  .page{padding:5rem 1rem 2rem}
+}
+</style>
+</head>
+<body>
+
+<div class="bg-orbs"><div class="orb o1"></div><div class="orb o2"></div></div>
+<canvas id="matrix-canvas"></canvas>
+<div class="toast-container" id="toasts"></div>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="nav-logo">
+      <svg viewBox="0 0 36 36" fill="none"><rect x="2" y="2" width="32" height="32" rx="8" stroke="#00e5ff" stroke-width="2"/><path d="M18 8L18 28M11 14L18 8L25 14M11 22L18 28L25 22" stroke="#00e5ff" stroke-width="2" stroke-linecap="round"/><circle cx="18" cy="18" r="3" fill="#00e5ff"/></svg>
+      <span>Cyber<span>Forge</span></span>
+    </a>
+    <div class="nav-tabs">
+      <button class="nav-tab active" data-page="dashboard">⌂ Dashboard</button>
+      <button class="nav-tab" data-page="learn">📚 Learn</button>
+      <button class="nav-tab" data-page="challenges">🏴 Challenges</button>
+      <button class="nav-tab" data-page="tools">🔧 Tools</button>
+      <button class="nav-tab" data-page="terminal">⬛ Terminal</button>
+      <button class="nav-tab" data-page="leaderboard">🏆 Leaderboard</button>
+    </div>
+    <div class="nav-right">
+      <div class="streak-badge">🔥 7 day streak</div>
+      <div class="xp-bar">
+        <span class="lvl" id="lvlText">LVL 12</span>
+        <div class="bar"><div class="fill" id="xpFill"></div></div>
+        <span id="xpText">3,500 XP</span>
+      </div>
+      <div class="user-avatar" title="Profile">KR</div>
+    </div>
+  </div>
+</nav>
+
+<!-- DASHBOARD -->
+<div class="page active" id="page-dashboard">
+  <div class="dash-hero">
+    <h1>Welcome back, <span>Operator</span> 👋</h1>
+    <p>Continue your cybersecurity journey. You're on a 7-day learning streak — keep it going!</p>
+  </div>
+  <div class="stats-row">
+    <div class="stat-card"><div class="val" style="color:var(--cyan)" id="statModules">24</div><div class="lbl">Modules Done</div></div>
+    <div class="stat-card"><div class="val" style="color:var(--green)" id="statFlags">8</div><div class="lbl">Flags Captured</div></div>
+    <div class="stat-card"><div class="val" style="color:var(--amber)" id="statXP">3,500</div><div class="lbl">Total XP</div></div>
+    <div class="stat-card"><div class="val" style="color:var(--purple)" id="statRank">#42</div><div class="lbl">Global Rank</div></div>
+    <div class="stat-card"><div class="val" style="color:var(--pink)" id="statStreak">7</div><div class="lbl">Day Streak</div></div>
+  </div>
+  <div class="grid-2" style="margin-top:1.5rem">
+    <div>
+      <div class="section-hdr"><div class="tag">// Quick Quiz</div><h2>Daily Security Challenge</h2></div>
+      <div id="dailyQuiz"></div>
+    </div>
+    <div>
+      <div class="section-hdr"><div class="tag">// Activity</div><h2>Recent Activity</h2></div>
+      <div>
+        <div class="activity-item"><div class="icon" style="background:rgba(57,255,20,.1)">✅</div><div>Completed <strong>TCP/IP Fundamentals</strong></div><span class="time">2h ago</span></div>
+        <div class="activity-item"><div class="icon" style="background:rgba(0,229,255,.1)">🏴</div><div>Captured flag in <strong>SQL Injection Lab</strong></div><span class="time">5h ago</span></div>
+        <div class="activity-item"><div class="icon" style="background:rgba(178,77,255,.1)">⬆️</div><div>Leveled up to <strong>Level 12</strong></div><span class="time">1d ago</span></div>
+        <div class="activity-item"><div class="icon" style="background:rgba(255,179,0,.1)">🔥</div><div>Started a <strong>7-day streak</strong></div><span class="time">1d ago</span></div>
+        <div class="activity-item"><div class="icon" style="background:rgba(255,62,62,.1)">🛡️</div><div>Enrolled in <strong>Penetration Testing</strong></div><span class="time">3d ago</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LEARN -->
+<div class="page" id="page-learn">
+  <div class="section-hdr"><div class="tag">// Learning Paths</div><h2>Choose Your Specialization</h2><p>Structured curricula from fundamentals to advanced techniques.</p></div>
+  <div class="grid-3" id="pathsGrid"></div>
+  <div style="margin-top:3rem">
+    <div class="section-hdr"><div class="tag">// Knowledge Quiz</div><h2>Test Your Knowledge</h2></div>
+    <div id="learnQuiz"></div>
+  </div>
+</div>
+
+<!-- CHALLENGES -->
+<div class="page" id="page-challenges">
+  <div class="section-hdr"><div class="tag">// CTF Challenges</div><h2>Capture The Flag</h2><p>Solve security challenges, find hidden flags, earn points.</p></div>
+  <div style="display:flex;gap:.75rem;margin-bottom:1.5rem;flex-wrap:wrap" id="challengeFilters">
+    <button class="btn btn-sm btn-cy" data-filter="all">All</button>
+    <button class="btn btn-sm btn-out" data-filter="easy">Easy</button>
+    <button class="btn btn-sm btn-out" data-filter="medium">Medium</button>
+    <button class="btn btn-sm btn-out" data-filter="hard">Hard</button>
+    <button class="btn btn-sm btn-out" data-filter="expert">Expert</button>
+  </div>
+  <div id="challengeList" style="display:flex;flex-direction:column;gap:.75rem"></div>
+</div>
+
+<!-- TOOLS -->
+<div class="page" id="page-tools">
+  <div class="section-hdr"><div class="tag">// Security Toolkit</div><h2>Interactive Tools</h2></div>
+  <div style="display:flex;gap:.75rem;margin-bottom:2rem;flex-wrap:wrap">
+    <button class="btn btn-sm btn-cy tool-tab" data-tool="hash">🔑 Hash Generator</button>
+    <button class="btn btn-sm btn-out tool-tab" data-tool="password">🔐 Password Analyzer</button>
+    <button class="btn btn-sm btn-out tool-tab" data-tool="encoder">🔄 Encoder/Decoder</button>
+    <button class="btn btn-sm btn-out tool-tab" data-tool="xss">🕸️ XSS Sandbox</button>
+    <button class="btn btn-sm btn-out tool-tab" data-tool="network">📡 Network Simulator</button>
+  </div>
+
+  <div class="tool-view" id="tool-hash">
+    <div class="tool-panel">
+      <h3>🔑 Hash Generator & Analyzer</h3>
+      <div class="input-group"><label>Input Text</label><textarea class="text-input" id="hashInput" placeholder="Enter text to hash...">CyberForge Academy</textarea></div>
+      <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem">
+        <button class="btn btn-sm btn-cy" onclick="generateHash('SHA-256')">SHA-256</button>
+        <button class="btn btn-sm btn-out" onclick="generateHash('SHA-1')">SHA-1</button>
+        <button class="btn btn-sm btn-out" onclick="generateHash('SHA-512')">SHA-512</button>
+        <button class="btn btn-sm btn-out" onclick="generateHash('MD5')">MD5</button>
+      </div>
+      <div class="input-group"><label>Hash Output</label><div class="output-box" id="hashOutput">Click a hash algorithm above...<button class="copy-btn" onclick="copyOutput('hashOutput')">Copy</button></div></div>
+      <div id="hashInfo" style="margin-top:1rem;font-size:.82rem;color:var(--t2);line-height:1.7"></div>
+    </div>
+  </div>
+
+  <div class="tool-view" id="tool-password" style="display:none">
+    <div class="tool-panel">
+      <h3>🔐 Password Strength Analyzer</h3>
+      <div class="input-group"><label>Enter Password</label><input type="text" class="text-input" id="pwInput" placeholder="Type a password to analyze..." autocomplete="off"></div>
+      <div class="pw-meter" id="pwMeter"><div class="seg"></div><div class="seg"></div><div class="seg"></div><div class="seg"></div><div class="seg"></div></div>
+      <div style="display:flex;justify-content:space-between;align-items:center"><span id="pwStrength" style="font-weight:700;font-size:.9rem">—</span><span id="pwCrackTime" class="mono" style="font-size:.78rem;color:var(--t3)"></span></div>
+      <div class="pw-criteria" id="pwCriteria">
+        <div class="cr" data-cr="length"><span class="ic">○</span> 8+ characters</div>
+        <div class="cr" data-cr="upper"><span class="ic">○</span> Uppercase letter</div>
+        <div class="cr" data-cr="lower"><span class="ic">○</span> Lowercase letter</div>
+        <div class="cr" data-cr="number"><span class="ic">○</span> Number</div>
+        <div class="cr" data-cr="special"><span class="ic">○</span> Special character</div>
+        <div class="cr" data-cr="long"><span class="ic">○</span> 12+ characters</div>
+      </div>
+      <div style="margin-top:1.25rem"><button class="btn btn-sm btn-out" onclick="generatePassword()">⚡ Generate Secure Password</button><div class="output-box" id="genPwOutput" style="margin-top:.75rem;display:none"><button class="copy-btn" onclick="copyOutput('genPwOutput')">Copy</button></div></div>
+    </div>
+  </div>
+
+  <div class="tool-view" id="tool-encoder" style="display:none">
+    <div class="tool-panel">
+      <h3>🔄 Encoder / Decoder</h3>
+      <div class="grid-2">
+        <div>
+          <div class="input-group"><label>Input</label><textarea class="text-input" id="encInput" rows="4">Hello, CyberForge!</textarea></div>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem">
+            <button class="btn btn-sm btn-cy" onclick="encode('base64')">Base64</button>
+            <button class="btn btn-sm btn-out" onclick="encode('hex')">Hex</button>
+            <button class="btn btn-sm btn-out" onclick="encode('url')">URL</button>
+            <button class="btn btn-sm btn-out" onclick="encode('binary')">Binary</button>
+            <button class="btn btn-sm btn-out" onclick="encode('rot13')">ROT13</button>
+            <button class="btn btn-sm btn-out" onclick="encode('reverse')">Reverse</button>
+          </div>
+        </div>
+        <div>
+          <div class="input-group"><label>Output</label><div class="output-box" id="encOutput" style="min-height:100px"><button class="copy-btn" onclick="copyOutput('encOutput')">Copy</button></div></div>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+            <button class="btn btn-sm btn-out" onclick="decode('base64')">Base64 Decode</button>
+            <button class="btn btn-sm btn-out" onclick="decode('hex')">Hex Decode</button>
+            <button class="btn btn-sm btn-out" onclick="decode('url')">URL Decode</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tool-view" id="tool-xss" style="display:none">
+    <div class="tool-panel">
+      <h3>🕸️ XSS Sandbox — Safe Testing Environment</h3>
+      <p style="font-size:.82rem;color:var(--t2);margin-bottom:1.25rem">Practice identifying XSS payloads in a safe sandboxed environment.</p>
+      <div class="sandbox-split">
+        <div>
+          <div class="input-group"><label>Payload Input</label><textarea class="text-input" id="xssInput" rows="6">&lt;h2&gt;Search Results&lt;/h2&gt;
+&lt;p&gt;You searched for: &lt;script&gt;alert('XSS')&lt;/script&gt;&lt;/p&gt;</textarea></div>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+            <button class="btn btn-sm btn-cy" onclick="renderXSS()">▶ Render</button>
+            <button class="btn btn-sm btn-out" onclick="loadXSSExample(0)">Reflected XSS</button>
+            <button class="btn btn-sm btn-out" onclick="loadXSSExample(1)">Event Handler</button>
+            <button class="btn btn-sm btn-out" onclick="loadXSSExample(2)">IMG Tag</button>
+          </div>
+          <div id="xssAnalysis" style="margin-top:1rem;font-size:.82rem;color:var(--t2);line-height:1.7"></div>
+        </div>
+        <div>
+          <div class="input-group"><label>Preview (Sandboxed)</label></div>
+          <div class="sandbox-preview"><div class="url-bar">🔒 https://vulnerable-app.local/search?q=</div><div id="xssPreview"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tool-view" id="tool-network" style="display:none">
+    <div class="tool-panel">
+      <h3>📡 Network Attack Simulator</h3>
+      <p style="font-size:.82rem;color:var(--t2);margin-bottom:1rem">Simulate attacks and defenses. Click nodes to inspect them.</p>
+      <div style="display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap">
+        <button class="btn btn-sm btn-out" onclick="netAction('scan')">🔍 Scan Network</button>
+        <button class="btn btn-sm btn-out" onclick="netAction('attack')" style="border-color:rgba(255,62,62,.3);color:var(--red)">⚡ Simulate Attack</button>
+        <button class="btn btn-sm btn-out" onclick="netAction('defend')" style="border-color:rgba(57,255,20,.3);color:var(--green)">🛡️ Apply Defenses</button>
+        <button class="btn btn-sm btn-out" onclick="netAction('reset')">↺ Reset</button>
+      </div>
+      <div class="network-canvas" id="netCanvas"></div>
+      <div class="net-log" id="netLog"><div style="color:var(--t3)">Network simulator ready. Click 'Scan Network' to begin.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- TERMINAL -->
+<div class="page" id="page-terminal">
+  <div class="section-hdr"><div class="tag">// Interactive Terminal</div><h2>CyberForge Shell</h2><p>Practice security commands. Type <span class="mono" style="color:var(--cyan)">help</span> to see available commands.</p></div>
+  <div class="terminal">
+    <div class="term-bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span class="title">cyberforge@academy:~</span></div>
+    <div class="term-body" id="termBody">
+      <div class="line"><span class="ok">CyberForge Terminal v2.4 — Type 'help' for available commands</span></div>
+      <div class="line"><span class="out">───────────────────────────────────────────</span></div>
+    </div>
+    <div style="padding:0 1.25rem 1rem;display:flex;align-items:center;font-family:var(--mono);font-size:.82rem">
+      <span style="color:var(--green);white-space:nowrap">root@cyberforge:~$ </span>
+      <input type="text" class="term-input" id="termInput" spellcheck="false">
+    </div>
+  </div>
+</div>
+
+<!-- LEADERBOARD -->
+<div class="page" id="page-leaderboard">
+  <div class="section-hdr"><div class="tag">// Rankings</div><h2>Global Leaderboard</h2></div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <table class="lb-table"><thead><tr><th>Rank</th><th>User</th><th>XP</th><th>Flags</th><th>Level</th><th>Badge</th></tr></thead><tbody id="lbBody"></tbody></table>
+  </div>
+</div>
+
+<!-- Challenge Modal -->
+<div class="modal-overlay" id="challengeModal">
+  <div class="modal">
+    <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:.5rem">
+      <div><h3 id="modalTitle"></h3><div style="display:flex;gap:.5rem;margin-top:.5rem"><span class="badge" id="modalDiff"></span><span class="badge" id="modalCat" style="background:rgba(0,229,255,.1);color:var(--cyan)"></span></div></div>
+      <button onclick="closeModal()" style="font-size:1.5rem;color:var(--t3);padding:.25rem">✕</button>
+    </div>
+    <p class="desc" id="modalDesc"></p>
+    <div id="modalHints" style="margin-bottom:1rem"></div>
+    <div class="flag-input"><input type="text" class="text-input" id="flagInput" placeholder="Enter flag: CTF{...}" spellcheck="false"><button class="btn btn-cy" onclick="submitFlag()">Submit</button></div>
+    <div id="flagResult" style="margin-top:.75rem;font-size:.85rem"></div>
+  </div>
+</div>
+
+<script>
+// STATE
+const state={xp:3500,level:12,flags:8,modules:24,streak:7,rank:42,solvedChallenges:new Set()};
+function addXP(n){
+  state.xp+=n;
+  if(state.xp>=state.level*500){state.level++;toast(`⬆️ Level Up! Now Level ${state.level}`,'info');document.getElementById('lvlText').textContent='LVL '+state.level}
+  document.getElementById('xpText').textContent=state.xp.toLocaleString()+' XP';
+  document.getElementById('xpFill').style.width=((state.xp%(state.level*500))/(state.level*500)*100)+'%';
+  document.getElementById('statXP').textContent=state.xp.toLocaleString();
+}
+
+// MATRIX
+!function(){const c=document.getElementById('matrix-canvas'),x=c.getContext('2d');let w,h,cols,d;const ch='01アイウエオカキクケコ';function init(){w=c.width=innerWidth;h=c.height=innerHeight;cols=Math.floor(w/18);d=Array(cols).fill(1)}function draw(){x.fillStyle='rgba(10,14,23,.08)';x.fillRect(0,0,w,h);x.fillStyle='#00e5ff';x.font='14px JetBrains Mono';for(let i=0;i<d.length;i++){x.fillText(ch[Math.random()*ch.length|0],i*18,d[i]*18);if(d[i]*18>h&&Math.random()>.975)d[i]=0;d[i]++}}init();addEventListener('resize',init);setInterval(draw,50)}();
+
+// TOAST
+function toast(msg,type='info'){const t=document.createElement('div');t.className=`toast toast-${type}`;t.textContent=msg;document.getElementById('toasts').appendChild(t);setTimeout(()=>t.remove(),3200)}
+
+// NAV
+document.querySelectorAll('.nav-tab').forEach(tab=>{tab.addEventListener('click',()=>{document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));tab.classList.add('active');document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById('page-'+tab.dataset.page).classList.add('active');if(tab.dataset.page==='terminal')document.getElementById('termInput').focus()})});
+
+// QUIZ
+const quizData={
+daily:[
+{q:"What does the CIA triad stand for?",opts:["Confidentiality, Integrity, Availability","Control, Identity, Access","Central Intelligence Agency Standards","Compliance, Investigation, Audit"],correct:0,explain:"The CIA triad: Confidentiality (protecting data), Integrity (data isn't tampered), Availability (systems stay accessible)."},
+{q:"Which port does HTTPS typically use?",opts:["Port 80","Port 443","Port 8080","Port 22"],correct:1,explain:"HTTPS uses port 443. HTTP uses 80, SSH uses 22, 8080 is an alternative HTTP port."},
+{q:"What type of attack uses crafted SQL statements through input fields?",opts:["Cross-Site Scripting","SQL Injection","Buffer Overflow","Man-in-the-Middle"],correct:1,explain:"SQL Injection inserts malicious SQL through application inputs to manipulate the backend database."},
+],
+learn:[
+{q:"What is the primary purpose of a firewall?",opts:["Encrypt traffic","Filter traffic based on rules","Scan for malware","Manage accounts"],correct:1,explain:"Firewalls filter network traffic based on predefined security rules."},
+{q:"Which protocol provides secure remote shell access?",opts:["Telnet","FTP","SSH","HTTP"],correct:2,explain:"SSH (Secure Shell) provides encrypted remote access. Telnet sends data in plaintext."},
+{q:"What does a MITM attack involve?",opts:["Overloading a server","Intercepting communication between parties","Brute force passwords","Injecting scripts into pages"],correct:1,explain:"Man-in-the-Middle attacks intercept and potentially alter communications between two parties."},
+{q:"Which tool is used for network packet analysis?",opts:["Nmap","Wireshark","Metasploit","Burp Suite"],correct:1,explain:"Wireshark is the most widely used network protocol analyzer."},
+{q:"What is the OWASP Top 10?",opts:["Top 10 security companies","10 most critical web app security risks","10 essential tools","10 certifications"],correct:1,explain:"OWASP Top 10 lists the most critical web application security risks."},
+{q:"What does a VPN primarily provide?",opts:["Faster internet","Encrypted tunnel for traffic","Antivirus protection","Firewall management"],correct:1,explain:"A VPN creates an encrypted tunnel protecting data in transit and masking your IP."},
+]};
+
+function initQuiz(containerId,questions){
+  const el=document.getElementById(containerId);let cur=0,score=0,answered=false;
+  function render(){
+    if(cur>=questions.length){const pct=Math.round(score/questions.length*100);el.innerHTML=`<div class="quiz-card"><div style="text-align:center;padding:2rem"><div style="font-size:3rem;margin-bottom:.5rem">${pct>=70?'🎉':'🤔'}</div><div style="font-size:3rem;font-weight:800;font-family:var(--mono);color:${pct>=70?'var(--green)':'var(--amber)'}">${pct}%</div><p style="color:var(--t2);margin:1rem 0">You got ${score}/${questions.length} correct</p><button class="btn btn-cy" id="retryBtn_${containerId}">Try Again</button></div></div>`;document.getElementById('retryBtn_'+containerId).onclick=()=>initQuiz(containerId,questions);if(score>0){addXP(score*50);toast(`+${score*50} XP earned!`,'xp')}return}
+    const q=questions[cur];answered=false;
+    el.innerHTML=`<div class="quiz-card"><div class="quiz-progress"><div class="bar"><div class="fill" style="width:${(cur/questions.length)*100}%"></div></div><span class="count">${cur+1}/${questions.length}</span></div><div class="quiz-q">${q.q}</div><div>${q.opts.map((o,i)=>`<div class="quiz-opt" data-idx="${i}"><div class="marker">${String.fromCharCode(65+i)}</div><span>${o}</span></div>`).join('')}</div><div class="quiz-explain" id="qex_${containerId}">${q.explain}</div><div style="margin-top:1rem"><button class="btn btn-cy btn-sm" id="qnx_${containerId}" style="display:none">Next →</button></div></div>`;
+    el.querySelectorAll('.quiz-opt').forEach(opt=>{opt.onclick=function(){
+      if(answered)return;answered=true;const idx=+this.dataset.idx;
+      el.querySelectorAll('.quiz-opt').forEach(o=>{const oi=+o.dataset.idx;if(oi===q.correct)o.classList.add('correct');else if(oi===idx&&idx!==q.correct)o.classList.add('wrong')});
+      if(idx===q.correct)score++;
+      document.getElementById('qex_'+containerId).classList.add('show');
+      document.getElementById('qnx_'+containerId).style.display='inline-flex';
+    }});
+    document.getElementById('qnx_'+containerId).onclick=()=>{cur++;render()};
+  }
+  render();
+}
+
+// PATHS
+const paths=[
+{name:'Network Defense',icon:'🛡️',color:'var(--cyan)',modules:24,hours:40,level:'Beginner',progress:65,desc:'Firewalls, IDS/IPS, monitoring, incident response.'},
+{name:'Penetration Testing',icon:'🔓',color:'var(--red)',modules:32,hours:60,level:'Intermediate',progress:38,desc:'Ethical hacking, vuln assessment, exploitation.'},
+{name:'Malware Analysis',icon:'🔬',color:'var(--purple)',modules:28,hours:55,level:'Advanced',progress:12,desc:'Reverse engineering, sandboxing, threat intel.'},
+{name:'Cloud Security',icon:'☁️',color:'var(--green)',modules:20,hours:35,level:'Intermediate',progress:0,desc:'AWS/Azure/GCP hardening, IAM, containers.'},
+{name:'Application Security',icon:'📱',color:'var(--amber)',modules:22,hours:38,level:'Intermediate',progress:22,desc:'OWASP Top 10, secure coding, DevSecOps.'},
+{name:'Digital Forensics',icon:'🕵️',color:'var(--pink)',modules:16,hours:30,level:'Advanced',progress:5,desc:'Evidence, memory forensics, timeline analysis.'},
+];
+document.getElementById('pathsGrid').innerHTML=paths.map(p=>`<div class="card" style="cursor:pointer" onclick="toast('📚 Enrolled in ${p.name}!','success');addXP(20)">
+<div style="font-size:2rem;margin-bottom:.75rem">${p.icon}</div>
+<h3 style="font-size:1.1rem;font-weight:700;margin-bottom:.4rem">${p.name}</h3>
+<p style="font-size:.82rem;color:var(--t2);margin-bottom:1rem;line-height:1.6">${p.desc}</p>
+<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem"><span class="badge" style="background:rgba(255,255,255,.05);color:var(--t2)">${p.level}</span><span class="badge" style="background:rgba(255,255,255,.05);color:var(--t3)">${p.modules} Modules</span><span class="badge" style="background:rgba(255,255,255,.05);color:var(--t3)">~${p.hours}h</span></div>
+<div style="font-family:var(--mono);font-size:.72rem;color:var(--t3);margin-bottom:.4rem">${p.progress}% Complete</div>
+<div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden"><div style="height:100%;width:${p.progress}%;background:${p.color};border-radius:2px;transition:width .8s ease"></div></div>
+</div>`).join('');
+
+// CHALLENGES
+const challenges=[
+{id:1,name:'Broken Authentication',desc:'Bypass a flawed login. The developer left a backdoor in session management.',cat:'Web Exploitation',diff:'easy',pts:100,flag:'CTF{br0k3n_auth_byp4ss}',hints:['Look at cookies carefully','Try changing isAdmin value','Base64 decode the session token']},
+{id:2,name:'Packet Forensics',desc:'PCAP contains data exfiltration evidence. Analyze DNS queries for hidden messages.',cat:'Network Analysis',diff:'medium',pts:250,flag:'CTF{dns_3xf1ltr4t10n}',hints:['Focus on unusual DNS queries','Subdomains contain hex-encoded data','Concatenate and decode']},
+{id:3,name:'SQL Injection Lab',desc:'The search is vulnerable to SQLi. Extract the admin password hash.',cat:'Web Exploitation',diff:'medium',pts:250,flag:'CTF{sql_1nj3ct10n_m4ster}',hints:["Try ' OR 1=1 --",'Use UNION SELECT','Table is called "users"']},
+{id:4,name:'Ransomware Reverse',desc:'Ransomware used a hardcoded XOR key. Reverse engineer to find it.',cat:'Reverse Engineering',diff:'hard',pts:500,flag:'CTF{x0r_k3y_r3c0v3r3d}',hints:['Key is 16 bytes','Check .data section','XOR is its own inverse']},
+{id:5,name:'Privilege Escalation',desc:'Low-privilege shell — escalate to root via misconfigurations.',cat:'System Exploitation',diff:'hard',pts:500,flag:'CTF{r00t_3sc4l4t10n}',hints:['find / -perm -4000','Check cron jobs','Writable /etc/passwd?']},
+{id:6,name:'APT Simulation',desc:'Multi-stage attack: phishing, lateral movement, persistence. Detect all 5 stages.',cat:'Incident Response',diff:'expert',pts:1000,flag:'CTF{4pt_d3t3ct3d_4ll_st4g3s}',hints:['Check email headers','Look for PsExec artifacts','Event Log scheduled tasks']},
+{id:7,name:'Caesar Cipher',desc:'Secret message encrypted with Caesar cipher. Find the shift value.',cat:'Cryptography',diff:'easy',pts:100,flag:'CTF{c43s4r_sh1ft_cr4ck3d}',hints:['Try all 26 shifts','Frequency analysis','Common English patterns']},
+{id:8,name:'Steganography',desc:'Image contains hidden data. Extract from PNG metadata and LSB.',cat:'Steganography',diff:'medium',pts:250,flag:'CTF{st3g0_h1dd3n_d4t4}',hints:['Check EXIF data','LSB extraction','Alpha channel']},
+];
+let currentChallenge=null;
+function renderChallenges(filter='all'){
+  const list=document.getElementById('challengeList');
+  const f=filter==='all'?challenges:challenges.filter(c=>c.diff===filter);
+  list.innerHTML=f.map(c=>{
+    const solved=state.solvedChallenges.has(c.id);
+    const dc={easy:'background:rgba(57,255,20,.1);color:var(--green)',medium:'background:rgba(255,179,0,.1);color:var(--amber)',hard:'background:rgba(255,62,62,.1);color:var(--red)',expert:'background:rgba(178,77,255,.1);color:var(--purple)'}[c.diff];
+    return `<div class="card" style="display:flex;align-items:center;gap:1.25rem;padding:1.25rem 1.5rem;flex-wrap:wrap;${solved?'opacity:.6':''}">
+    <span class="badge" style="${dc}">${c.diff.toUpperCase()}</span>
+    <div style="flex:1;min-width:200px"><div style="font-weight:600">${solved?'✅ ':''}${c.name}</div><div style="font-size:.78rem;color:var(--t3)">${c.cat}</div></div>
+    <span class="mono" style="font-size:.82rem;color:var(--cyan);font-weight:600">+${c.pts}</span>
+    <button class="btn btn-sm ${solved?'btn-out':'btn-cy'}" onclick="openChallenge(${c.id})" ${solved?'disabled':''}>${solved?'Solved':'Launch →'}</button>
+    </div>`}).join('');
+}
+document.getElementById('challengeFilters').onclick=e=>{if(!e.target.dataset.filter)return;document.querySelectorAll('#challengeFilters .btn').forEach(b=>{b.classList.remove('btn-cy');b.classList.add('btn-out')});e.target.classList.remove('btn-out');e.target.classList.add('btn-cy');renderChallenges(e.target.dataset.filter)};
+function openChallenge(id){
+  currentChallenge=challenges.find(c=>c.id===id);if(!currentChallenge)return;
+  document.getElementById('modalTitle').textContent=currentChallenge.name;
+  const dc={easy:'background:rgba(57,255,20,.1);color:var(--green)',medium:'background:rgba(255,179,0,.1);color:var(--amber)',hard:'background:rgba(255,62,62,.1);color:var(--red)',expert:'background:rgba(178,77,255,.1);color:var(--purple)'}[currentChallenge.diff];
+  document.getElementById('modalDiff').setAttribute('style',dc);document.getElementById('modalDiff').textContent=currentChallenge.diff.toUpperCase()+' — '+currentChallenge.pts+' pts';
+  document.getElementById('modalCat').textContent=currentChallenge.cat;document.getElementById('modalDesc').textContent=currentChallenge.desc;
+  document.getElementById('modalHints').innerHTML='<div style="font-size:.75rem;color:var(--t3);margin-bottom:.5rem;font-family:var(--mono)">HINTS (click to reveal):</div>'+currentChallenge.hints.map((h,i)=>`<button class="btn btn-sm btn-out" style="margin:.2rem" onclick="this.innerHTML='💡 ${h}';this.disabled=true;this.style.borderColor='var(--amber)';this.style.color='var(--amber)'">Hint ${i+1}</button>`).join('');
+  document.getElementById('flagInput').value='';document.getElementById('flagResult').innerHTML='';
+  document.getElementById('challengeModal').classList.add('open');
+}
+function closeModal(){document.getElementById('challengeModal').classList.remove('open')}
+function submitFlag(){
+  const input=document.getElementById('flagInput').value.trim();if(!currentChallenge)return;
+  if(input===currentChallenge.flag){
+    document.getElementById('flagResult').innerHTML=`<span style="color:var(--green)">🎉 Correct! +${currentChallenge.pts} XP</span>`;
+    state.solvedChallenges.add(currentChallenge.id);state.flags++;document.getElementById('statFlags').textContent=state.flags;
+    addXP(currentChallenge.pts);toast(`🏴 Flag captured! +${currentChallenge.pts} XP`,'success');
+    setTimeout(()=>{closeModal();renderChallenges()},1500);
+  }else{document.getElementById('flagResult').innerHTML=`<span style="color:var(--red)">✗ Incorrect. Try again.</span>`;toast('Wrong flag','error')}
+}
+document.getElementById('challengeModal').onclick=e=>{if(e.target===e.currentTarget)closeModal()};
+
+// TOOLS TABS
+document.querySelectorAll('.tool-tab').forEach(t=>{t.onclick=()=>{document.querySelectorAll('.tool-tab').forEach(b=>{b.classList.remove('btn-cy');b.classList.add('btn-out')});t.classList.remove('btn-out');t.classList.add('btn-cy');document.querySelectorAll('.tool-view').forEach(v=>v.style.display='none');document.getElementById('tool-'+t.dataset.tool).style.display='block'}});
+
+// HASH
+async function generateHash(algo){
+  const input=document.getElementById('hashInput').value;if(!input){toast('Enter text first','error');return}
+  let hash;
+  if(algo==='MD5'){hash=md5(input)}else{const buf=await crypto.subtle.digest(algo,new TextEncoder().encode(input));hash=[...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('')}
+  document.getElementById('hashOutput').innerHTML=hash+`<button class="copy-btn" onclick="copyOutput('hashOutput')">Copy</button>`;
+  const info={'SHA-256':'SHA-256: 256-bit hash. Used in TLS, blockchain, digital signatures. 64 hex chars.','SHA-1':'⚠️ SHA-1 is broken (collisions since 2017). Avoid for security. 40 hex chars.','SHA-512':'SHA-512: 512-bit hash. Stronger but slower. Used in password hashing. 128 hex chars.','MD5':'🚨 MD5 is severely broken. NEVER use for security. Only for checksums. 32 hex chars.'};
+  document.getElementById('hashInfo').innerHTML=info[algo]||'';toast(`${algo} hash generated`,'success');addXP(10);
+}
+function md5(s){function L(a,b){return(a<<b)|(a>>>(32-b))}function F(a,b,c,d,x,s,t){a=a+(b&c|~b&d)+x+t;return L(a,s)+b}function G(a,b,c,d,x,s,t){a=a+(b&d|c&~d)+x+t;return L(a,s)+b}function H(a,b,c,d,x,s,t){a=a+(b^c^d)+x+t;return L(a,s)+b}function I(a,b,c,d,x,s,t){a=a+(c^(b|~d))+x+t;return L(a,s)+b}const e=new TextEncoder().encode(s);let n=e.length;const buf=new Uint8Array(((n+8>>6)+1)*64);buf.set(e);buf[n]=128;const dv=new DataView(buf.buffer);dv.setUint32(buf.length-8,n*8,true);let a=0x67452301,b=0xefcdab89,c=0x98badcfe,d=0x10325476;for(let i=0;i<buf.length;i+=64){const x=[];for(let j=0;j<16;j++)x[j]=dv.getUint32(i+j*4,true);let A=a,B=b,C=c,D=d;A=F(A,B,C,D,x[0],7,0xd76aa478);D=F(D,A,B,C,x[1],12,0xe8c7b756);C=F(C,D,A,B,x[2],17,0x242070db);B=F(B,C,D,A,x[3],22,0xc1bdceee);A=F(A,B,C,D,x[4],7,0xf57c0faf);D=F(D,A,B,C,x[5],12,0x4787c62a);C=F(C,D,A,B,x[6],17,0xa8304613);B=F(B,C,D,A,x[7],22,0xfd469501);A=F(A,B,C,D,x[8],7,0x698098d8);D=F(D,A,B,C,x[9],12,0x8b44f7af);C=F(C,D,A,B,x[10],17,0xffff5bb1);B=F(B,C,D,A,x[11],22,0x895cd7be);A=F(A,B,C,D,x[12],7,0x6b901122);D=F(D,A,B,C,x[13],12,0xfd987193);C=F(C,D,A,B,x[14],17,0xa679438e);B=F(B,C,D,A,x[15],22,0x49b40821);A=G(A,B,C,D,x[1],5,0xf61e2562);D=G(D,A,B,C,x[6],9,0xc040b340);C=G(C,D,A,B,x[11],14,0x265e5a51);B=G(B,C,D,A,x[0],20,0xe9b6c7aa);A=G(A,B,C,D,x[5],5,0xd62f105d);D=G(D,A,B,C,x[10],9,0x02441453);C=G(C,D,A,B,x[15],14,0xd8a1e681);B=G(B,C,D,A,x[4],20,0xe7d3fbc8);A=G(A,B,C,D,x[9],5,0x21e1cde6);D=G(D,A,B,C,x[14],9,0xc33707d6);C=G(C,D,A,B,x[3],14,0xf4d50d87);B=G(B,C,D,A,x[8],20,0x455a14ed);A=G(A,B,C,D,x[13],5,0xa9e3e905);D=G(D,A,B,C,x[2],9,0xfcefa3f8);C=G(C,D,A,B,x[7],14,0x676f02d9);B=G(B,C,D,A,x[12],20,0x8d2a4c8a);A=H(A,B,C,D,x[5],4,0xfffa3942);D=H(D,A,B,C,x[8],11,0x8771f681);C=H(C,D,A,B,x[11],16,0x6d9d6122);B=H(B,C,D,A,x[14],23,0xfde5380c);A=H(A,B,C,D,x[1],4,0xa4beea44);D=H(D,A,B,C,x[4],11,0x4bdecfa9);C=H(C,D,A,B,x[7],16,0xf6bb4b60);B=H(B,C,D,A,x[10],23,0xbebfbc70);A=H(A,B,C,D,x[13],4,0x289b7ec6);D=H(D,A,B,C,x[0],11,0xeaa127fa);C=H(C,D,A,B,x[3],16,0xd4ef3085);B=H(B,C,D,A,x[6],23,0x04881d05);A=H(A,B,C,D,x[9],4,0xd9d4d039);D=H(D,A,B,C,x[12],11,0xe6db99e5);C=H(C,D,A,B,x[15],16,0x1fa27cf8);B=H(B,C,D,A,x[2],23,0xc4ac5665);A=I(A,B,C,D,x[0],6,0xf4292244);D=I(D,A,B,C,x[7],10,0x432aff97);C=I(C,D,A,B,x[14],15,0xab9423a7);B=I(B,C,D,A,x[5],21,0xfc93a039);A=I(A,B,C,D,x[12],6,0x655b59c3);D=I(D,A,B,C,x[3],10,0x8f0ccc92);C=I(C,D,A,B,x[10],15,0xffeff47d);B=I(B,C,D,A,x[1],21,0x85845dd1);A=I(A,B,C,D,x[8],6,0x6fa87e4f);D=I(D,A,B,C,x[15],10,0xfe2ce6e0);C=I(C,D,A,B,x[6],15,0xa3014314);B=I(B,C,D,A,x[13],21,0x4e0811a1);A=I(A,B,C,D,x[4],6,0xf7537e82);D=I(D,A,B,C,x[11],10,0xbd3af235);C=I(C,D,A,B,x[2],15,0x2ad7d2bb);B=I(B,C,D,A,x[9],21,0xeb86d391);a=(a+A)>>>0;b=(b+B)>>>0;c=(c+C)>>>0;d=(d+D)>>>0}function hex(n){let s='';for(let i=0;i<4;i++)s+=((n>>(i*8))&255).toString(16).padStart(2,'0');return s}return hex(a)+hex(b)+hex(c)+hex(d)}
+
+function copyOutput(id){const el=document.getElementById(id);navigator.clipboard.writeText(el.textContent.replace('Copy','').trim()).then(()=>toast('Copied!','success'))}
+
+// PASSWORD
+document.getElementById('pwInput').oninput=function(){
+  const pw=this.value;const segs=document.querySelectorAll('#pwMeter .seg');
+  const cr={length:pw.length>=8,upper:/[A-Z]/.test(pw),lower:/[a-z]/.test(pw),number:/\d/.test(pw),special:/[^A-Za-z0-9]/.test(pw),long:pw.length>=12};
+  let sc=Object.values(cr).filter(Boolean).length;
+  const cols=['var(--red)','var(--red)','var(--amber)','var(--amber)','var(--green)','var(--green)'];
+  const lbls=['Very Weak','Weak','Fair','Good','Strong','Very Strong'];
+  segs.forEach((s,i)=>{s.style.background=i<sc?cols[sc-1]:'rgba(255,255,255,.06)'});
+  document.getElementById('pwStrength').textContent=pw?lbls[sc-1]||'Very Weak':'—';
+  document.getElementById('pwStrength').style.color=pw?cols[sc-1]||'var(--red)':'var(--t3)';
+  const times=['Instantly','Minutes','Hours','Days','Months','Centuries'];
+  document.getElementById('pwCrackTime').textContent=pw?'Crack time: '+times[Math.min(sc,5)]:'';
+  document.querySelectorAll('#pwCriteria .cr').forEach(c=>{if(cr[c.dataset.cr]){c.classList.add('pass');c.querySelector('.ic').textContent='✓'}else{c.classList.remove('pass');c.querySelector('.ic').textContent='○'}});
+};
+function generatePassword(){
+  const ch='abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%^&*()-_=+';let pw='';for(let i=0;i<20;i++)pw+=ch[Math.random()*ch.length|0];
+  const el=document.getElementById('genPwOutput');el.style.display='block';el.innerHTML=pw+`<button class="copy-btn" onclick="copyOutput('genPwOutput')">Copy</button>`;
+  document.getElementById('pwInput').value=pw;document.getElementById('pwInput').dispatchEvent(new Event('input'));toast('Secure password generated!','success');
+}
+
+// ENCODER
+function encode(type){
+  const input=document.getElementById('encInput').value;let out='';
+  switch(type){case'base64':out=btoa(unescape(encodeURIComponent(input)));break;case'hex':out=[...new TextEncoder().encode(input)].map(b=>b.toString(16).padStart(2,'0')).join(' ');break;case'url':out=encodeURIComponent(input);break;case'binary':out=[...new TextEncoder().encode(input)].map(b=>b.toString(2).padStart(8,'0')).join(' ');break;case'rot13':out=input.replace(/[a-zA-Z]/g,c=>{const b=c<='Z'?65:97;return String.fromCharCode((c.charCodeAt(0)-b+13)%26+b)});break;case'reverse':out=input.split('').reverse().join('');break}
+  document.getElementById('encOutput').innerHTML=out+`<button class="copy-btn" onclick="copyOutput('encOutput')">Copy</button>`;toast(`${type} encoded`,'success');addXP(5);
+}
+function decode(type){
+  const input=document.getElementById('encInput').value;let out='';
+  try{switch(type){case'base64':out=decodeURIComponent(escape(atob(input)));break;case'hex':out=new TextDecoder().decode(new Uint8Array(input.trim().split(/\s+/).map(h=>parseInt(h,16))));break;case'url':out=decodeURIComponent(input);break}
+  document.getElementById('encOutput').innerHTML=out+`<button class="copy-btn" onclick="copyOutput('encOutput')">Copy</button>`;toast('Decoded!','success')}catch(e){toast('Decode failed','error')}
+}
+
+// XSS
+const xssEx=[`<h2>Welcome</h2>\n<p>Hello, <script>document.write('INJECTED!')<\/script></p>`,`<input value="" onfocus="alert('XSS')" autofocus>`,`<img src="x" onerror="document.body.innerHTML='<h1 style=color:red>DEFACED!</h1>'">`];
+function loadXSSExample(i){document.getElementById('xssInput').value=xssEx[i];renderXSS()}
+function renderXSS(){
+  const input=document.getElementById('xssInput').value;
+  const iframe=document.createElement('iframe');iframe.sandbox='allow-same-origin';iframe.style.cssText='width:100%;height:180px;border:none;background:#fff;border-radius:4px';
+  const p=document.getElementById('xssPreview');p.innerHTML='';p.appendChild(iframe);
+  iframe.srcdoc=`<html><body style="font-family:sans-serif;padding:8px;color:#333">${input}</body></html>`;
+  const a=[];
+  if(/<script/i.test(input))a.push('🚨 <strong style="color:var(--red)">Script injection</strong> — &lt;script&gt; tags found');
+  if(/on\w+\s*=/i.test(input))a.push('⚠️ <strong style="color:var(--amber)">Event handler injection</strong>');
+  if(/<img[^>]+onerror/i.test(input))a.push('🚨 <strong style="color:var(--red)">IMG onerror payload</strong>');
+  if(!a.length)a.push('✅ <strong style="color:var(--green)">No obvious XSS vectors</strong>');
+  document.getElementById('xssAnalysis').innerHTML='<strong>Analysis:</strong><br>'+a.join('<br>');addXP(15);
+}
+
+// NETWORK
+const netNodes=[{id:'internet',label:'Internet',icon:'🌐',x:50,y:15,bg:'var(--bg4)'},{id:'firewall',label:'Firewall',icon:'🧱',x:50,y:32,bg:'rgba(255,179,0,.15)'},{id:'router',label:'Router',icon:'📡',x:50,y:50,bg:'rgba(0,229,255,.1)'},{id:'server',label:'Web Server',icon:'🖥️',x:25,y:72,bg:'rgba(178,77,255,.1)'},{id:'db',label:'Database',icon:'🗄️',x:50,y:85,bg:'rgba(57,255,20,.1)'},{id:'workstation',label:'Workstation',icon:'💻',x:75,y:72,bg:'rgba(255,77,166,.1)'}];
+function renderNet(){
+  document.getElementById('netCanvas').innerHTML='<svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1"><line x1="50%" y1="20%" x2="50%" y2="36%" stroke="var(--bdr2)" stroke-width="1" stroke-dasharray="4"/><line x1="50%" y1="38%" x2="50%" y2="54%" stroke="var(--bdr2)" stroke-width="1" stroke-dasharray="4"/><line x1="44%" y1="57%" x2="30%" y2="72%" stroke="var(--bdr2)" stroke-width="1" stroke-dasharray="4"/><line x1="56%" y1="57%" x2="78%" y2="72%" stroke="var(--bdr2)" stroke-width="1" stroke-dasharray="4"/><line x1="32%" y1="80%" x2="47%" y2="88%" stroke="var(--bdr2)" stroke-width="1" stroke-dasharray="4"/></svg>'+netNodes.map(n=>`<div class="net-node" id="node-${n.id}" style="left:${n.x}%;top:${n.y}%;transform:translate(-50%,-50%)" onclick="toast('📋 ${n.label}: Inspecting...','info')"><div class="nicon" style="background:${n.bg}">${n.icon}</div><div class="nlabel">${n.label}</div></div>`).join('');
+}
+function nLog(msg,t='out'){const l=document.getElementById('netLog');l.innerHTML+=`<div><span style="color:var(--t3)">[${new Date().toLocaleTimeString()}]</span> <span class="${t}">${msg}</span></div>`;l.scrollTop=l.scrollHeight}
+function netAction(a){
+  switch(a){
+  case'scan':nLog('Initiating scan...','cmd');setTimeout(()=>nLog('Discovering hosts on 10.0.0.0/24...','out'),500);setTimeout(()=>nLog('[✓] 6 active hosts found','ok'),1500);setTimeout(()=>nLog('[!] Web Server: Ports 80, 443, 8080 open','warn'),2000);setTimeout(()=>nLog('[!] Database: Port 3306 exposed!','err'),2500);setTimeout(()=>{nLog('Scan complete.','info');addXP(25);toast('+25 XP','xp')},3500);break;
+  case'attack':nLog('⚡ Simulating attack...','err');setTimeout(()=>{document.getElementById('node-server')?.classList.add('compromised');nLog('[✗] Web Server COMPROMISED!','err')},1000);setTimeout(()=>{document.getElementById('node-db')?.classList.add('compromised');nLog('[✗] Database COMPROMISED!','err')},2500);setTimeout(()=>{nLog('2 nodes compromised.','warn');addXP(30)},3500);break;
+  case'defend':nLog('🛡️ Applying defenses...','ok');setTimeout(()=>{nLog('[✓] Firewall updated','ok');document.getElementById('node-firewall')?.classList.add('secured')},800);setTimeout(()=>{nLog('[✓] MySQL restricted','ok');document.getElementById('node-db')?.classList.remove('compromised');document.getElementById('node-db')?.classList.add('secured')},1600);setTimeout(()=>{nLog('[✓] Server hardened','ok');document.getElementById('node-server')?.classList.remove('compromised');document.getElementById('node-server')?.classList.add('secured')},2400);setTimeout(()=>{nLog('Network secured!','ok');addXP(50);toast('+50 XP','xp')},3200);break;
+  case'reset':document.querySelectorAll('.net-node').forEach(n=>{n.classList.remove('compromised','secured')});document.getElementById('netLog').innerHTML='<div style="color:var(--t3)">Reset. Ready.</div>';break;
+  }
+}
+
+// TERMINAL
+const termCmds={
+help:()=>`<span class="info">Commands:</span>  <span class="cmd">help</span> <span class="cmd">nmap</span> <span class="cmd">whois</span> <span class="cmd">ping</span> <span class="cmd">hashcat</span> <span class="cmd">exploit</span> <span class="cmd">whoami</span> <span class="cmd">ifconfig</span> <span class="cmd">ps</span> <span class="cmd">cat /etc/passwd</span> <span class="cmd">uname -a</span> <span class="cmd">clear</span> <span class="cmd">flag</span>`,
+nmap:()=>{addXP(20);return`<span class="out">Starting Nmap 7.94...</span>\n<span class="ok">[✓] 192.168.1.1  — Router (22,80,443)</span>\n<span class="ok">[✓] 192.168.1.10 — Web (80,443,8080)</span>\n<span class="warn">[!] 192.168.1.10 — Apache 2.4.29 outdated!</span>\n<span class="err">[✗] 192.168.1.42 — MySQL exposed, no auth!</span>\n<span class="out">4 hosts, 2 vulns found</span>`},
+whois:()=>`<span class="out">Domain: cyberforge.academy\nRegistrar: Namecheap\nCreated: 2024-01-15\nExpires: 2026-01-15\nStatus: Active</span>`,
+ping:()=>`<span class="ok">64 bytes from 192.168.1.1: seq=1 ttl=64 time=1.23ms</span>\n<span class="ok">64 bytes from 192.168.1.1: seq=2 ttl=64 time=0.89ms</span>\n<span class="ok">64 bytes from 192.168.1.1: seq=3 ttl=64 time=1.01ms</span>\n<span class="out">3 packets, 0% loss</span>`,
+hashcat:()=>{addXP(30);return`<span class="out">hashcat v6.2.6\nHash: 5f4dcc3b5aa765d61d8327deb882cf99\nType: MD5</span>\n<span class="ok">[✓] CRACKED → "password"</span>\n<span class="err">[!] Cracked in 0.003s — extremely weak!</span>`},
+exploit:()=>{addXP(40);return`<span class="err">msf6 > use exploit/multi/http/apache_mod_cgi</span>\n<span class="out">[*] Target: 192.168.1.10:8080</span>\n<span class="ok">[+] Meterpreter session 1 opened!</span>\n<span class="out">meterpreter > getuid → www-data</span>\n<span class="warn">[!] Only use on authorized targets!</span>`},
+whoami:()=>`<span class="ok">root</span>`,
+ifconfig:()=>`<span class="out">eth0: inet 10.0.0.5 netmask 255.255.255.0\n      ether 02:42:0a:00:00:05\nlo:   inet 127.0.0.1</span>`,
+ps:()=>`<span class="out">  PID CMD\n    1 systemd\n  234 sshd\n  456 apache2\n  789 mysqld</span>\n<span class="warn">  999 crypto_miner ← SUSPICIOUS!</span>`,
+'cat /etc/passwd':()=>`<span class="out">root:x:0:0::/root:/bin/bash\nwww-data:x:33:33::/var/www\nmysql:x:27:27::/var/lib/mysql</span>\n<span class="warn">backdoor:x:0:0::/tmp:/bin/bash ← UID 0!</span>`,
+'uname -a':()=>`<span class="out">Linux cyberforge 5.15.0-91-generic x86_64 GNU/Linux</span>`,
+flag:()=>{addXP(100);toast('🏴 Hidden flag! +100 XP','success');return`<span class="ok">🏴 CTF{t3rm1n4l_h4ck3r_pr0}</span>`},
+clear:()=>'__CLEAR__',
+};
+document.getElementById('termInput').onkeydown=function(e){
+  if(e.key!=='Enter')return;const cmd=this.value.trim();this.value='';if(!cmd)return;
+  const tb=document.getElementById('termBody');
+  tb.innerHTML+=`<div class="line"><span class="prompt">root@cyberforge:~$ </span><span class="cmd">${cmd}</span></div>`;
+  const fn=termCmds[cmd]||termCmds[cmd.toLowerCase()];
+  if(fn){const r=fn();if(r==='__CLEAR__')tb.innerHTML='';else tb.innerHTML+=`<div class="line">${r}</div>`}
+  else tb.innerHTML+=`<div class="line"><span class="err">Command not found: ${cmd}. Type 'help'</span></div>`;
+  tb.scrollTop=tb.scrollHeight;
+};
+
+// LEADERBOARD
+const lb=[
+{n:'z3r0_kn1ght',i:'ZK',xp:24850,f:156,l:38,b:'🏆 Grandmaster',c:'var(--cyan)',bg:'rgba(255,179,0,.15)',bc:'var(--amber)'},
+{n:'sh4d0w_hunt3r',i:'SH',xp:22400,f:148,l:35,b:'⚡ Elite',c:'var(--red)',bg:'rgba(178,77,255,.15)',bc:'var(--purple)'},
+{n:'n3tph4nt0m',i:'NP',xp:19200,f:132,l:30,b:'⚡ Elite',c:'var(--green)',bg:'rgba(178,77,255,.15)',bc:'var(--purple)'},
+{n:'crypt0_x',i:'CX',xp:17650,f:121,l:27,b:'💎 Diamond',c:'var(--amber)',bg:'rgba(0,229,255,.15)',bc:'var(--cyan)'},
+{n:'byt3_fury',i:'BF',xp:15300,f:108,l:24,b:'💎 Diamond',c:'var(--pink)',bg:'rgba(0,229,255,.15)',bc:'var(--cyan)'},
+{n:'r00t_wr4ith',i:'RW',xp:12800,f:94,l:20,b:'🥇 Gold',c:'var(--cyan)',bg:'rgba(255,179,0,.15)',bc:'var(--amber)'},
+{n:'p4ck3t_st0rm',i:'PS',xp:10500,f:78,l:17,b:'🥇 Gold',c:'var(--purple)',bg:'rgba(255,179,0,.15)',bc:'var(--amber)'},
+{n:'d4rk_c0d3r',i:'DC',xp:6200,f:45,l:10,b:'🥈 Silver',c:'var(--green)',bg:'rgba(255,255,255,.08)',bc:'var(--t2)'},
+{n:'n00b_h4ck3r',i:'NH',xp:3500,f:28,l:7,b:'🥉 Bronze',c:'var(--pink)',bg:'rgba(205,127,50,.15)',bc:'#cd7f32'},
+];
+document.getElementById('lbBody').innerHTML=lb.map((u,i)=>`<tr><td style="font-family:var(--mono);font-weight:700;color:var(--cyan)">#${i+1}</td><td><div class="lb-user"><div class="lb-av" style="background:rgba(255,255,255,.05);color:${u.c}">${u.i}</div>${u.n}</div></td><td style="font-family:var(--mono);font-weight:600;color:var(--green)">${u.xp.toLocaleString()}</td><td>${u.f}</td><td class="mono">${u.l}</td><td><span class="badge" style="background:${u.bg};color:${u.bc}">${u.b}</span></td></tr>`).join('');
+
+// INIT
+renderNet();renderChallenges();
+initQuiz('dailyQuiz',quizData.daily);initQuiz('learnQuiz',quizData.learn);
+toast('Welcome back, Operator!','info');
+</script>
+</body>
+</html>
